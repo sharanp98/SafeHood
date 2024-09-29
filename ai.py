@@ -62,8 +62,8 @@ def categorize_neighborhood(data_row):
         f"Community Engagement Score: {community_engagement_score}\n"
         f"Police Presence: {police_presence}\n\n"
         f"Please categorize this neighborhood based on safety as a percentage (0-100%) and provide a concise reasoning for your classification in JSON format. "
-        f'Example: {{"areaName": "Tempe", "reasoning": "The neighborhood in Tempe has a moderate safety rating of 45%. While the violent crime rate is relatively high, the property crime rate is also above average. Residents feel somewhat safe during the day but less safe at night. The presence of environmental issues may impact safety perceptions, and the community engagement score is average. The median income and home value are relatively high, reflecting a well-off community. However, the population density is also high, which may contribute to higher crime rates. Overall, this neighborhood falls in the middle in terms of safety.", "safetyPercentage": 45}}'
-        f"The output should include the area name but not impact the safety rating."
+        f'Example: {{"areaName": "Tempe", "reasoning": "This neighborhood falls in the middle in terms of safety due to these reasons - <reasons>", "safetyPercentage": 45}}'
+        f"The output should include the area name but not impact the safety rating. Keep your answers very short and concise, limit to 50 words."
     )
 
     # Create a chat completion request
