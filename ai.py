@@ -1,4 +1,5 @@
 import os
+import csv
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -10,6 +11,17 @@ api_key = os.getenv('OPENAI_API_KEY')
 
 # Initialize the OpenAI client with the API key
 client = OpenAI(api_key=api_key)
+
+def extract_data_row(zipcode):
+    """Extract a row of neighborhood data based on the given zipcode from a CSV file."""
+    with open('neighborhood_data.csv', mode='r') as file:
+        reader = csv.reader(file)
+        # Skip the header if there's one
+        header = next(reader, None)
+        for row in reader:
+            if row[0] == zipcode:  # Check if the first column matches the zipcode
+                return ','.join(row)  # Return the row as a comma-separated string
+    return None  # Return None if the zipcode was not found
 
 def categorize_neighborhood(data_row):
     # Parse the input data
@@ -60,6 +72,11 @@ def categorize_neighborhood(data_row):
     return completion.choices[0].message.content.strip()
 
 # Example usage
-data_row = "85308,813,2415,5.5,6.9,39846,269878,10935,0.55,Yes,7.5,13"
-result = categorize_neighborhood(data_row)
-print(f"{result}")
+zipcode = "85282"
+data_row = extract_data_row(zipcode)
+
+if data_row:
+    result = categorize_neighborhood(data_row)
+    print(f"{result}")
+else:
+    print(f"No data found for zipcode: {zipcode}")
