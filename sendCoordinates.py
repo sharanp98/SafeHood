@@ -46,4 +46,7 @@ def coordinates_to_zipcode():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000, ssl_context=('cert.pem', 'key.pem'))
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+    context.load_cert_chain(certfile='cert.pem', keyfile='key.pem', password='helloj')
+
+    app.run(host="0.0.0.0", port=5000, ssl_context=context)
