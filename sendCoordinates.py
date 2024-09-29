@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-import request
+import requests
 
 nominatimURL = 'https://nominatim.openstreetmap.org/reverse'
 pincode = ""
