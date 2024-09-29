@@ -1,60 +1,49 @@
 from flask import Flask, request, jsonify
 import requests
+import ai
 
-nominatimURL = 'https://nominatim.openstreetmap.org/reverse'
-pincode = ""
 app = Flask(__name__)
 
-@app.route('/api/post_json', methods=['POST'])
-def post_json():
+# Nominatim reverse geocoding URL
+NOMINATIM_URL = 'https://nominatim.openstreetmap.org/reverse'
+
+@app.route('/api/coordinates_to_zipcode', methods=['POST'])
+def coordinates_to_zipcode():
     try:
-        # Get the JSON data from the request body
-        coordinateData = request.get_json()
-        # Do something with the data (for example, print it)
-        print(coordinateData)
+        # Parse JSON data from the request
+        coordinate_data = request.get_json()
 
-        finalLat = coordinateData['lat']
-        finalLon = coordinateData['lon']
+        lat = coordinate_data.get('lat')
+        lon = coordinate_data.get('lon')
 
-        print(finalLat)
+        if not lat or not lon:
+            return x({"error": "Latitude and longitude are required."}), 400
 
-        # Logic for getting pincode
-        params = {
-            'lat': finalLat,
-            'lon': finalLon,
-            'format': 'json'
-        }
+        # Reverse geocoding to get zipcode
+        params = {'lat': lat, 'lon': lon, 'format': 'json'}
+        headers = {'User-Agent': 'YourAppName/1.0 (your.email@example.com)'}
+        
+        response = requests.get(NOMINATIM_URL, params=params, headers=headers)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        
+        nominatim_data = response.json()
+        zipcode = nominatim_data.get('address', {}).get('postcode')
 
-        headers = {
-            'User-Agent': 'YourAppName/1.0 (your.email@example.com)'
-        }
-        nominatimResponse = requests.get(nominatimURL, params=params, headers=headers)
+        if not zipcode:
+            return jsonify({"error": "Unable to retrieve zipcode from the coordinates."}), 404
 
-        if(nominatimResponse.status_code == 200):
-            nominatimData = nominatimResponse.json()
-            pincode = nominatimData['address']['postcode']
-        else:
-            print(f"Error: {nominatimResponse.status_code}")
-            print(nominatimResponse.text) 
+        # Fetch neighborhood safety data based on the retrieved zipcode
+        safety_data = ai.get_neighborhood_safety(zipcode)
 
+        return jsonify(safety_data)
 
-
-        # Check if the data is valid or has the required fields
-        # if 'name' not in data or 'age' not in data:
-        #     return jsonify({"error": "Invalid data"}), 400
-
-        # Respond with a success message and the received data
-        # return jsonify({
-        #     "message": "Data received successfully",
-        #     "received_data": data
-        # }), 200
-
-        return pincode
-    
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": f"Error with Nominatim request: {str(e)}"}), 502
+    except KeyError:
+        return jsonify({"error": "Invalid response format from Nominatim."}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':
     app.run(debug=True)
-    
