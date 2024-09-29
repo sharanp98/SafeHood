@@ -27,6 +27,7 @@ def categorize_neighborhood(data_row):
     # Parse the input data
     (
         zipcode,
+        area_name,  # Add area_name to the parsing
         violent_crime_rate,
         property_crime_rate,
         feel_safe_day,
@@ -44,6 +45,7 @@ def categorize_neighborhood(data_row):
     prompt = (
         f"Based on the following neighborhood data:\n"
         f"Zipcode: {zipcode}\n"
+        f"Area Name: {area_name}\n"
         f"Violent Crime Rate: {violent_crime_rate}\n"
         f"Property Crime Rate: {property_crime_rate}\n"
         f"Feel Safe During Day (1-10): {feel_safe_day}\n"
@@ -55,8 +57,9 @@ def categorize_neighborhood(data_row):
         f"Environmental Issues: {environmental_issues}\n"
         f"Community Engagement Score: {community_engagement_score}\n"
         f"Police Presence: {police_presence}\n\n"
-        f"Please categorize this neighborhood based on safety as a percentage (0-100%) and provide a concise reasoning for your classification in JSON format. Do not include any information outside the json "
-        f"like this: {{'safety_percentage': '75%', 'reasoning': 'Moderate crime rates but good community engagement.'}}."
+        f"Please categorize this neighborhood based on safety as a percentage (0-100%) and provide a concise reasoning for your classification in JSON format. "
+        f"The output should include the area name but not impact the safety rating, like this: "
+        f"{{'area_name': '{area_name}', 'safety_percentage': '75%', 'reasoning': 'Moderate crime rates but good community engagement.'}}."
     )
 
     # Create a chat completion request
