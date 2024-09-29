@@ -13,8 +13,8 @@ def post_json():
         # Do something with the data (for example, print it)
         print(coordinateData)
 
-        finalLat = (coordinateData['lat1'] + coordinateData['lat2'] + coordinateData['lat3'] + coordinateData['lat4']) / 4
-        finalLon = (coordinateData['lon1'] + coordinateData['lon2'] + coordinateData['lon3'] + coordinateData['lon4']) / 4
+        finalLat = coordinateData['lat']
+        finalLon = coordinateData['lon']
 
         print(finalLat)
 
