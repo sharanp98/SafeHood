@@ -1,5 +1,6 @@
 import os
 import csv
+import json
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -12,22 +13,25 @@ api_key = os.getenv('OPENAI_API_KEY')
 # Initialize the OpenAI client with the API key
 client = OpenAI(api_key=api_key)
 
-def extract_data_row(zipcode):
-    """Extract a row of neighborhood data based on the given zipcode from a CSV file."""
+def get_neighborhood_safety(zipcode):
+    """Fetch neighborhood data and categorize it based on the given zipcode."""
+    
+    # Extract the row of neighborhood data based on the given zipcode
     with open('neighborhood_data.csv', mode='r') as file:
         reader = csv.reader(file)
-        # Skip the header if there's one
-        header = next(reader, None)
+        header = next(reader, None)  # Skip the header if there is one
+        
         for row in reader:
             if row[0] == zipcode:  # Check if the first column matches the zipcode
-                return ','.join(row)  # Return the row as a comma-separated string
-    return None  # Return None if the zipcode was not found
+                return categorize_neighborhood(row)  # Return the JSON response
+    
+    return json.dumps({"error": "No data found for the provided zipcode."})  # JSON error response
 
 def categorize_neighborhood(data_row):
     # Parse the input data
     (
         zipcode,
-        area_name,  # Add area_name to the parsing
+        area_name,
         violent_crime_rate,
         property_crime_rate,
         feel_safe_day,
@@ -39,7 +43,7 @@ def categorize_neighborhood(data_row):
         environmental_issues,
         community_engagement_score,
         police_presence
-    ) = data_row.split(',')
+    ) = data_row
 
     # Construct the prompt for the OpenAI API
     prompt = (
@@ -58,28 +62,24 @@ def categorize_neighborhood(data_row):
         f"Community Engagement Score: {community_engagement_score}\n"
         f"Police Presence: {police_presence}\n\n"
         f"Please categorize this neighborhood based on safety as a percentage (0-100%) and provide a concise reasoning for your classification in JSON format. "
-        f"The output should include the area name but not impact the safety rating, like this: "
-        f"{{'area_name': '{area_name}', 'safety_percentage': '75%', 'reasoning': 'Moderate crime rates but good community engagement.'}}."
+        f"The output should include the area name but not impact the safety rating."
     )
 
     # Create a chat completion request
     completion = client.chat.completions.create(
-        model="gpt-3.5-turbo",  # Update to the correct model you want to use
+        model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
         ]
     )
 
-    # Get the response and return the categorization
-    return completion.choices[0].message.content.strip()
+    # Get the response and return it as JSON
+    response = completion.choices[0].message.content.strip()
+    return json.loads(response)  # Assuming the response is already in JSON format
 
-# Example usage
-zipcode = "85282"
-data_row = extract_data_row(zipcode)
-
-if data_row:
-    result = categorize_neighborhood(data_row)
-    print(f"{result}")
-else:
-    print(f"No data found for zipcode: {zipcode}")
+# Example usage when the script is executed directly (for testing)
+if __name__ == "__main__":
+    zipcode = "85282"
+    result = get_neighborhood_safety(zipcode)
+    print(result)
